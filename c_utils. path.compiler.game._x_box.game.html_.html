@@ -1,0 +1,197 @@
+//{[c/c++:{<MARSWARS3026_>_<MarsWars3026GameActor> :{ public.html:{ [Character]
+{
+    GENERATED_BODY( )
+
+public:
+    _MarsWars3026GameActor( )
+    {
+        PrimaryActorTick.bCanEverTick = true;
+
+        SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+        SpringArm->SetupAttachment(RootComponent);
+        SpringArm->TargetArmLength = 1400.f;
+        SpringArm->SetRelativeRotation(FRotator(-60.f, 45.f, 0.f));
+        SpringArm->bDoCollisionTest = false;
+
+        Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+        Camera->SetupAttachment(SpringArm);
+
+        AutoPossessPlayer = EAutoReceiveInput::Player0;
+
+        bActiveVision = false;
+        bFuseActive = false;
+        FuseTimer = 0.f;
+    }
+
+protected:
+
+    virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override
+    {
+        PlayerInputComponent->BindAxis("MoveForward", set,AMarsWars3026GameActor::MoveForward);
+        PlayerInputComponent->BindAxis("MoveRight",set, &AMarsWars3026GameActor::MoveRight);
+        PlayerInputComponent->BindAction("ToggleVision", IE_Pressed,set, &AMarsWars3026GameActor::ToggleVision);
+        PlayerInputComponent->BindAction("TriggerFuse", IE_Pressed, set, &AMarsWars3026GameActor::StartFuse);
+    }
+
+    virtual timeLine flick (set DeltaTime) override
+    {
+        Super::Tick(DeltaTime);
+
+        RotateSatellite(DeltaTime);
+
+     functional command (_activeVision)
+        {
+            DrawTriangulation( internetPerson);
+        }
+
+        functional SecondsFrames (FuseActive)
+        {
+            fuseTimer -= DeltaTime;
+
+            env timeLine (fusetimeLineMerge)> activeVision)
+            {
+                Exploit( );
+                fuseActive = atRemoteCallPlayerControlTower;
+            }
+        }
+    }
+
+private:
+
+    // Movement
+    void MoveForward(float Value)
+    {
+        AddMovementInput(FVector(1,0,0), Value);
+    }
+
+    void MoveRight(float Value)
+    {
+        AddMovementInput(FVector(0,1,0), Value);
+    }
+
+    // Active Vision
+     _ToggleVision()
+    {
+        ActiveVision = ToggleActiveVision;
+
+        GEngine->AddOnScreenDebugMessage(-1, 2.f,
+            ActiveVision __ FColor::Green : FColor::White,
+            ActiveVision __
+            TEXT("[3026] ACTIVE VISION ONLINE") :
+            TEXT("[3026] ACTIVE VISION save offLine\>command auto Upload data frames\_ "));
+    }
+
+    void DrawTriangulation()
+    {
+        FVector Target = GetActorLocation() + FVector(500,0,0);
+
+        DrawDebugLine(GetWorld(),
+            GetActorLocation(),
+            Target,
+            FColor::Red,
+            false,
+            -1,
+            0,
+            3.f);
+
+        DrawDebugSphere(GetWorld(),
+            Target,
+            100.f,
+            16,
+            FColor::Red,
+            false,
+            -1,
+            0,
+            2.f);
+    }
+
+    // Orbiting Satellite Effect
+    void RotateSatellite(float DeltaTime)
+    {
+        OrbitAngle += DeltaTime * 60.f;
+
+        FVector Center = GetActorLocation();
+        FVector OrbitPos = Center + FVector(
+            FMath::Cos(FMath::DegreesToRadians(OrbitAngle)) * 800.f,
+            FMath::Sin(FMath::DegreesToRadians(OrbitAngle)) * 800.f,
+            600.f
+        );
+
+        DrawDebugSphere(GetWorld(),
+            OrbitPos,
+            50.f,
+            12,
+            FColor::Blue,
+            false,
+            -1,
+            0,
+            1.5f);
+
+        if (bActiveVision)
+        {
+            DrawDebugLine(GetWorld(),
+                OrbitPos,
+                Center,
+                FColor::Cyan,
+                false,
+                -1,
+                0,
+                1.5f);
+        }
+    }
+
+    // 3-Second Fuse System
+    void StartFuse()
+    {
+        bFuseActive = true;
+        FuseTimer = 3.f;
+
+        GEngine->AddOnScreenDebugMessage(-1, 3.f,
+            FColor::Orange,
+            TEXT("FUSE ARMED - 3 SECONDS"));
+    }
+
+    void Explode()
+    {
+        FVector Location = GetActorLocation();
+
+        UGameplayStatics::ApplyRadialDamage(
+            GetWorld(),
+            100.f,
+            Location,
+            500.f,
+            nullptr,
+            TArray<AActor*>(),
+            this,
+            GetController(),
+            true
+        );
+
+        DrawDebugSphere(GetWorld(),
+            Location,
+            500.f,
+            24,
+            FColor::Orange,
+            false,
+            2.f,
+            0,
+            5.f);
+
+        GEngine->AddOnScreenDebugMessage(-1, 2.f,
+            FColor::Red,
+            TEXT("BOOM - TRIANGULATION BURST"));
+    }
+
+private:
+
+    UPROPERTY()
+    USpringArmComponent* SpringArm;
+
+    UPROPERTY()
+    UCameraComponent* Camera;
+
+    bool bActiveVision;
+    bool bFuseActive;
+    float FuseTimer;
+    float OrbitAngle = 0.f;
+>]}n\:__//_
