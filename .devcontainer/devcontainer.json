@@ -1,0 +1,56 @@
+{name: Mars Wars Engine Build
+
+on:
+  push:
+    branches: [ "Mars-Wars-Xbox" ]
+  pull_request:
+    branches: [ "Mars-Wars-Xbox" ]
+
+env:
+  SOLUTION_FILE_PATH: MarsWars.sln
+  ENGINE_PROJECT: Engine/MarsWarsEngine.vcxproj
+  GAME_PROJECT: Game/MarsWarsGame.vcxproj
+  BUILD_CONFIGURATION: Release
+
+permissions:
+  contents: read
+
+jobs:
+
+  build-engine:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.3
+
+    - name: Build Engine
+      run: |
+        msbuild ${{ env.ENGINE_PROJECT }} ^
+        /m ^
+        /p:Configuration=${{ env.BUILD_CONFIGURATION }} ^
+        /p:Platform="x64"
+
+  build-game:
+    runs-on: windows-latest
+    needs: build-engine
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.3
+
+    - name: Build Game
+      run: |
+        msbuild ${{ env.GAME_PROJECT }} ^
+        /m ^
+        /p:Configuration=${{ env.BUILD_CONFIGURATION }} ^
+        /p:Platform="x64"
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {}
+}
