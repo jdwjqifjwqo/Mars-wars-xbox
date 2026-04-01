@@ -1,0 +1,187 @@
+<html>:{
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ISO 1111 — Internet Person Passenger</title>
+<style>
+  body { margin:0; background:#000; overflow:hidden; display:flex; }
+  canvas { display:block; }
+  #ide {
+    width: 280px;
+    background:#0a0a0a;
+    color:#00ffcc;
+    font-family: monospace;
+    padding:10px;
+    border-left:1px solid #222;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+<div id="ide"><pre id="out"></pre></div>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+const out = document.getElementById("out");
+
+canvas.width = window.innerWidth - 280;
+canvas.height = window.innerHeight;
+
+// --- CORE STATE ---
+let thought = { x: canvas.width/2, y: canvas.height/2 };
+let path=[], pathIndex=0;
+let history=[];
+
+// --- PATH ---
+function makePath(r=320,steps=600){
+  let a=[];
+  for(let i=0;i<steps;i++){
+    let t=i/steps*Math.PI*2;
+    a.push({
+      x:canvas.width/2 + Math.cos(t)*r,
+      y:canvas.height/2 + Math.sin(t)*r
+    });
+  }
+  return a;
+}
+path = makePath();
+
+// --- ENVIRONMENT (transparent field) ---
+function env(){
+  for(let y=0;y<canvas.height;y+=30){
+    ctx.beginPath();
+    for(let x=0;x<canvas.width;x+=30){
+      let o=Math.sin(x*0.015 + y*0.015 + Date.now()*0.0015)*10;
+      ctx.lineTo(x,y+o);
+    }
+    ctx.strokeStyle='rgba(0,120,255,0.06)';
+    ctx.stroke();
+  }
+}
+
+// --- TRACK ---
+function track(){
+  history.push({x:thought.x,y:thought.y});
+  if(history.length>140) history.shift();
+
+  ctx.beginPath();
+  history.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.strokeStyle='rgba(255,255,0,0.35)';
+  ctx.lineWidth=1.5;
+  ctx.stroke();
+}
+
+// --- TRANSPARENT SHELL ---
+function shell(x,y){
+  // outer field
+  ctx.beginPath();
+  ctx.arc(x,y,85,0,Math.PI*2);
+  ctx.strokeStyle='rgba(0,255,255,0.18)';
+  ctx.lineWidth=2;
+  ctx.stroke();
+
+  // inner refraction ring
+  ctx.beginPath();
+  ctx.arc(x,y,60,0,Math.PI*2);
+  ctx.strokeStyle='rgba(0,255,255,0.08)';
+  ctx.stroke();
+}
+
+// --- INTERNET PERSON (animated passenger) ---
+function person(x,y){
+  let t = Date.now()*0.004;
+
+  ctx.save();
+  ctx.translate(x,y);
+
+  // head
+  ctx.beginPath();
+  ctx.arc(0,-18,6,0,Math.PI*2);
+  ctx.strokeStyle='cyan';
+  ctx.stroke();
+
+  // body sway
+  let sway = Math.sin(t)*3;
+
+  // body
+  ctx.beginPath();
+  ctx.moveTo(0,-12);
+  ctx.lineTo(sway,12);
+  ctx.stroke();
+
+  // arms
+  ctx.beginPath();
+  ctx.moveTo(-8,0);
+  ctx.lineTo(8,0);
+  ctx.stroke();
+
+  // legs
+  ctx.beginPath();
+  ctx.moveTo(sway,12);
+  ctx.lineTo(-6,20);
+  ctx.moveTo(sway,12);
+  ctx.lineTo(6,20);
+  ctx.stroke();
+
+  // aura pulse
+  ctx.beginPath();
+  ctx.arc(0,0,25+Math.sin(t)*6,0,Math.PI*2);
+  ctx.strokeStyle='rgba(0,255,255,0.25)';
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// --- LABEL ---
+function label(x,y){
+  ctx.font='bold 16px monospace';
+  ctx.fillStyle='gold';
+  ctx.textAlign='center';
+  ctx.fillText('ISO 1111',x,y-70);
+}
+
+// --- IDE ---
+function ide(){
+  out.textContent =
+`ISO_VERSION = 1111
+MODE        = SLEEP_FLIGHT
+PASSENGER   = INTERNET_PERSON
+
+POS_X       = ${thought.x.toFixed(1)}
+POS_Y       = ${thought.y.toFixed(1)}
+PATH_INDEX  = ${pathIndex}
+
+SHELL       = TRANSPARENT_ACTIVE
+ENV         = VIRTUAL_FIELD`;
+}
+
+// --- ANIMATE ---
+function loop(){
+  ctx.fillStyle='rgba(0,0,0,0.2)';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  env();
+
+  // movement
+  thought.x += (path[pathIndex].x - thought.x)*0.05;
+  thought.y += (path[pathIndex].y - thought.y)*0.05;
+
+  if(Math.hypot(thought.x-path[pathIndex].x,thought.y-path[pathIndex].y)<2){
+    pathIndex = (pathIndex+1)%path.length;
+  }
+
+  track();
+  shell(thought.x,thought.y);
+  person(thought.x,thought.y);
+  label(thought.x,thought.y);
+  ide();
+
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+<html></html>}
