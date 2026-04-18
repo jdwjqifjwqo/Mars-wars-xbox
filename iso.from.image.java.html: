@@ -1,0 +1,268 @@
+<html>:
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>AI Simulation Engine v4</title>
+
+    <style>
+        body {
+            background: #000;
+            color: #00ffcc;
+            font-family: monospace;
+            text-align: center;
+        }
+        
+        #zone {
+            border: 2px dashed #00ffcc;
+            padding: 20px;
+            margin: 10px;
+            cursor: pointer;
+        }
+        
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 3px;
+        }
+        
+        .cell {
+            border: 1px solid #00ffcc;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        #videoCanvas {
+            border: 2px solid #00ffcc;
+            margin-top: 10px;
+        }
+        
+        button {
+            margin: 5px;
+            padding: 10px;
+            background: #00ffcc;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h3>AI Image → Temporal Simulation Engine</h3>
+
+    <div id="zone" contenteditable="true">CLICK / PASTE IMAGE</div>
+    <input type="file" id="fileInput" accept="image/*" style="display:none">
+
+    <div id="grid"></div>
+
+    <h3>Video Output</h3>
+    <canvas id="videoCanvas" width="512" height="512"></canvas>
+    <br>
+    <button onclick="playVideo()">▶ Play</button>
+    <button onclick="exportVideo()">🎬 Export</button>
+
+    <script>
+        const zone = document.getElementById("zone");
+        const fileInput = document.getElementById("fileInput");
+        const grid = document.getElementById("grid");
+        const videoCanvas = document.getElementById("videoCanvas");
+        const vctx = videoCanvas.getContext("2d");
+
+        let baseImage;
+        let cells = [];
+        let compiledFrames = [];
+        let simInterval;
+
+        // === CREATE GRID ===
+        for (let i = 0; i < 50; i++) {
+            let div = document.createElement("div");
+            div.className = "cell";
+            let canvas = document.createElement("canvas");
+            canvas.width = 128;
+            canvas.height = 128;
+            div.appendChild(canvas);
+            grid.appendChild(div);
+
+            cells.push({
+                ctx: canvas.getContext("2d"),
+                state: null,
+                frames: [],
+                index: 0
+            });
+        }
+
+        // === INPUT ===
+        zone.onclick = () => fileInput.click();
+
+        zone.addEventListener("paste", e => {
+            for (let item of e.clipboardData.items) {
+                if (item.type.includes("image")) {
+                    loadImage(item.getAsFile());
+                }
+            }
+        });
+
+        fileInput.onchange = e => loadImage(e.target.files[0]);
+
+        // === LOAD ===
+        function loadImage(file) {
+            let reader = new FileReader();
+            reader.onload = e => {
+                let img = new Image();
+                img.onload = () => {
+                    let c = document.createElement("canvas");
+                    let ctx = c.getContext("2d");
+                    c.width = 128;
+                    c.height = 128;
+                    ctx.drawImage(img, 0, 0, 128, 128);
+                    baseImage = ctx.getImageData(0, 0, 128, 128);
+
+                    initSimulation();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // === INIT SIMULATION ===
+        function initSimulation() {
+            cells.forEach((cell, idx) => {
+                cell.state = createState(baseImage, idx);
+                cell.frames = generateFrames(cell.state, idx);
+                cell.index = 0;
+            });
+
+            compileFrames();
+            runGrid();
+        }
+
+        // === CREATE STATE ===
+        function createState(img, idx) {
+            let data = new Float32Array(img.data.length);
+
+            for (let i = 0; i < img.data.length; i += 4) {
+                let brightness = (img.data[i] + img.data[i + 1] + img.data[i + 2]) / 3;
+
+                // store evolving state
+                data[i] = brightness + idx * 2;
+                data[i + 1] = brightness;
+                data[i + 2] = brightness;
+                data[i + 3] = 255;
+            }
+
+            return data;
+        }
+
+        // === GENERATE TEMPORAL FRAMES ===
+        function generateFrames(state, idx) {
+            let frames = [];
+            let current = new Float32Array(state);
+
+            for (let t = 0; t < 60; t++) { // 60 frames (~10–15 sec at low fps)
+                let frame = new Uint8ClampedArray(current.length);
+
+                for (let i = 0; i < current.length; i += 4) {
+
+                    // temporal evolution
+                    current[i] += Math.sin(t * 0.1 + idx) * 2;
+                    current[i + 1] += Math.cos(t * 0.1) * 1.5;
+                    current[i + 2] += Math.sin(t * 0.05) * 2;
+
+                    // clamp
+                    current[i] = Math.max(0, Math.min(255, current[i]));
+                    current[i + 1] = Math.max(0, Math.min(255, current[i + 1]));
+                    current[i + 2] = Math.max(0, Math.min(255, current[i + 2]));
+
+                    frame[i] = current[i];
+                    frame[i + 1] = current[i + 1];
+                    frame[i + 2] = current[i + 2];
+                    frame[i + 3] = 255;
+                }
+
+                frames.push(new ImageData(frame, 128, 128));
+            }
+
+            return frames;
+        }
+
+        // === COMPILE VIDEO SEQUENCE ===
+        function compileFrames() {
+            compiledFrames = [];
+
+            for (let t = 0; t < 60; t++) {
+                cells.forEach(cell => {
+                    compiledFrames.push(cell.frames[t]);
+                });
+            }
+        }
+
+        // === RUN GRID ===
+        function runGrid() {
+            clearInterval(simInterval);
+
+            simInterval = setInterval(() => {
+                cells.forEach(cell => {
+                    cell.ctx.putImageData(cell.frames[cell.index], 0, 0);
+                    cell.index = (cell.index + 1) % cell.frames.length;
+                });
+            }, 100);
+        }
+
+        // === PLAY VIDEO (FIXED SEQUENCE) ===
+        function playVideo() {
+            let i = 0;
+
+            let loop = setInterval(() => {
+                vctx.putImageData(compiledFrames[i], 0, 0);
+                i++;
+
+                if (i >= compiledFrames.length) {
+                    clearInterval(loop);
+                }
+
+            }, 100);
+        }
+
+        // === EXPORT VIDEO ===
+        function exportVideo() {
+            let stream = videoCanvas.captureStream(30);
+            let recorder = new MediaRecorder(stream);
+            let chunks = [];
+
+            recorder.ondataavailable = e => chunks.push(e.data);
+
+            recorder.onstop = () => {
+                let blob = new Blob(chunks, {
+                    type: "video/webm"
+                });
+                let url = URL.createObjectURL(blob);
+
+                let a = document.createElement("a");
+                a.href = url;
+                a.download = "simulation.webm";
+                a.click();
+            };
+
+            recorder.start();
+
+            let i = 0;
+
+            let interval = setInterval(() => {
+                vctx.putImageData(compiledFrames[i], 0, 0);
+                i++;
+
+                if (i >= compiledFrames.length) {
+                    clearInterval(interval);
+                    recorder.stop();
+                }
+
+            }, 33); // ~30 FPS
+        }
+    </script>
+
+</body>
+
+</html>
