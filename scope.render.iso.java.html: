@@ -1,0 +1,205 @@
+<html>:{
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Image Simulation Engine (Fixed Input)</title>
+
+    <style>
+        body {
+            background: black;
+            color: #00ffcc;
+            font-family: monospace;
+            text-align: center;
+            margin: 0;
+        }
+        /* TOP INPUT SECTION */
+        
+        #zone {
+            border: 2px dashed #00ffcc;
+            padding: 25px;
+            margin: 10px;
+            outline: none;
+        }
+        /* GRID */
+        
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 5px;
+            padding: 10px;
+        }
+        
+        .cell {
+            border: 1px solid #00ffcc;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h3>Paste Image INTO the Box Below</h3>
+
+    <!-- 🔥 INPUT ZONE -->
+    <div id="zone" contenteditable="true">
+        CLICK HERE → then press CTRL+V to paste image (or click to upload)
+    </div>
+
+    <input type="file" id="fileInput" accept="image/*" style="display:none">
+
+    <div id="grid"></div>
+
+    <script>
+        const zone = document.getElementById("zone");
+        const fileInput = document.getElementById("fileInput");
+        const grid = document.getElementById("grid");
+
+        let baseImage = null;
+        let interpretation = {};
+        let cells = [];
+
+        // === CREATE 50 CELLS ===
+        for (let i = 0; i < 50; i++) {
+            const div = document.createElement("div");
+            div.className = "cell";
+
+            const canvas = document.createElement("canvas");
+            canvas.width = 128;
+            canvas.height = 128;
+
+            div.appendChild(canvas);
+            grid.appendChild(div);
+
+            cells.push({
+                ctx: canvas.getContext("2d"),
+                frames: [],
+                index: 0
+            });
+        }
+
+        // === CLICK TO UPLOAD ===
+        zone.addEventListener("click", () => fileInput.click());
+
+        fileInput.addEventListener("change", e => {
+            loadImage(e.target.files[0]);
+        });
+
+        // === PASTE (ONLY WHEN FOCUSED IN ZONE) ===
+        zone.addEventListener("paste", e => {
+            const items = e.clipboardData.items;
+
+            for (let item of items) {
+                if (item.type.includes("image")) {
+                    const file = item.getAsFile();
+                    loadImage(file);
+                }
+            }
+        });
+
+        // === LOAD IMAGE VIA FILEREADER ===
+        function loadImage(file) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const img = new Image();
+
+                img.onload = () => {
+                    const temp = document.createElement("canvas");
+                    const tctx = temp.getContext("2d");
+
+                    temp.width = 128;
+                    temp.height = 128;
+
+                    tctx.drawImage(img, 0, 0, 128, 128);
+                    baseImage = tctx.getImageData(0, 0, 128, 128);
+
+                    interpretImage();
+                    generateAll();
+                    runSimulation();
+                };
+
+                img.src = e.target.result;
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        // === INTERPRETER ===
+        function interpretImage() {
+            let data = baseImage.data;
+            let totalR = 0,
+                totalG = 0,
+                totalB = 0,
+                edges = 0;
+
+            for (let i = 0; i < data.length; i += 4) {
+                totalR += data[i];
+                totalG += data[i + 1];
+                totalB += data[i + 2];
+
+                if (Math.abs(data[i] - data[i + 1]) > 40) edges++;
+            }
+
+            let px = data.length / 4;
+
+            interpretation = {
+                avgR: totalR / px,
+                avgG: totalG / px,
+                avgB: totalB / px,
+                edgeDensity: edges / px
+            };
+        }
+
+        // === GENERATE ===
+        function generateAll() {
+            cells.forEach((cell, idx) => {
+                cell.frames = [];
+
+                for (let f = 0; f < 10; f++) {
+                    let frame = new ImageData(
+                        new Uint8ClampedArray(baseImage.data),
+                        128, 128
+                    );
+
+                    for (let p = 0; p < frame.data.length; p += 4) {
+                        let factor = (idx + 1) * 0.02;
+
+                        frame.data[p] += interpretation.avgR * factor * f;
+                        frame.data[p + 1] += interpretation.avgG * factor * f;
+                        frame.data[p + 2] += interpretation.avgB * factor * f;
+
+                        let distort = interpretation.edgeDensity * 80 * Math.sin(f + idx);
+                        frame.data[p] += distort;
+
+                        let noise = (Math.random() - 0.5) * (5 + idx);
+                        frame.data[p] += noise;
+                        frame.data[p + 1] += noise;
+                        frame.data[p + 2] += noise;
+                    }
+
+                    cell.frames.push(frame);
+                }
+
+                cell.index = 0;
+            });
+        }
+
+        // === RUN ===
+        function runSimulation() {
+            setInterval(() => {
+                cells.forEach(cell => {
+                    cell.ctx.putImageData(cell.frames[cell.index], 0, 0);
+                    cell.index = (cell.index + 1) % cell.frames.length;
+                });
+            }, 333);
+        }
+    </script>
+
+</body>
+
+</html>}
