@@ -1,0 +1,69 @@
+2026-06-29 01:37:22.360 [warning] Running on the web in a webworker; workspaceId=66214e7b; storageUri=vscode-userdata:/User/globalStorage/github.remotehub
+2026-06-29 01:37:22.360 [info] [    2] ChangeStore.getWorkspacesWithChanges()
+2026-06-29 01:37:22.360 [info] [    6] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.vscode/settings.json)
+2026-06-29 01:37:22.360 [info] [    8] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.vscode/tasks.json)
+2026-06-29 01:37:22.360 [info] [   10] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.vscode/launch.json)
+2026-06-29 01:37:22.360 [info] [   12] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.vscode/mcp.json)
+2026-06-29 01:37:22.360 [info] [   27] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.mcp.json)
+2026-06-29 01:37:22.360 [info] [   29] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.git/config)
+2026-06-29 01:37:22.360 [info] [   31] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.vscode/extensions.json)
+2026-06-29 01:37:22.360 [info] [   33] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.claude/settings.json)
+2026-06-29 01:37:22.360 [info] [   35] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.github/copilot/settings.json)
+2026-06-29 01:37:22.360 [info] [    6] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.vscode/settings.json): Not found; no operations
+2026-06-29 01:37:22.360 [info] [    8] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.vscode/tasks.json): Not found; no operations
+2026-06-29 01:37:22.360 [info] [    6] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.vscode/settings.json) took 18 ms
+2026-06-29 01:37:22.360 [info] [   10] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.vscode/launch.json): Not found; no operations
+2026-06-29 01:37:22.360 [info] [    8] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.vscode/tasks.json) took 19 ms
+2026-06-29 01:37:22.360 [info] [   12] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.vscode/mcp.json): Not found; no operations
+2026-06-29 01:37:22.360 [info] [    2] ChangeStore.getWorkspacesWithChanges() took 56 ms
+2026-06-29 01:37:22.360 [info] [   10] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.vscode/launch.json) took 20 ms
+2026-06-29 01:37:22.360 [info] [   12] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.vscode/mcp.json) took 20 ms
+2026-06-29 01:37:22.360 [info] [   27] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.mcp.json): Not found; no operations
+2026-06-29 01:37:22.360 [info] [   29] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.git/config): Not found; no operations
+2026-06-29 01:37:22.360 [info] [   27] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.mcp.json) took 27 ms
+2026-06-29 01:37:22.360 [info] [   31] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.vscode/extensions.json): Not found; no operations
+2026-06-29 01:37:22.360 [info] [   29] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.git/config) took 27 ms
+2026-06-29 01:37:22.360 [info] [   33] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.claude/settings.json): Not found; no operations
+2026-06-29 01:37:22.360 [info] [   31] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.vscode/extensions.json) took 29 ms
+2026-06-29 01:37:22.360 [info] [   35] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.github/copilot/settings.json): Not found; no operations
+2026-06-29 01:37:22.360 [info] [   33] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.claude/settings.json) took 29 ms
+2026-06-29 01:37:22.360 [info] [   35] ChangeStore.readFile(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox/.github/copilot/settings.json) took 29 ms
+2026-06-29 01:37:22.360 [info] [   48] GitHub.createMetadata(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox, undefined)
+2026-06-29 01:37:22.360 [info] Parsed metadata for vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox: name jdwjqifjwqo/Mars-wars-xbox, owner jdwjqifjwqo, name Mars-wars-xbox, ref undefined
+2026-06-29 01:37:22.360 [info] [   49] GitHub.ensureAuthenticated
+2026-06-29 01:37:22.360 [info] [   50] GitHub.sync(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox, resolution=0, to=undefined)
+2026-06-29 01:37:22.360 [info] [   51] GitHub.fetch(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox, force=true, to=undefined)
+2026-06-29 01:37:22.360 [info] [   52] GitHub.sync(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox, resolution=0, to=undefined)
+2026-06-29 01:37:22.360 [info] [   53] GitHub.fetch(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox, force=true, to=undefined)
+2026-06-29 01:37:22.366 [info] [   49] GitHub.ensureAuthenticated took 288 ms
+2026-06-29 01:37:23.049 [info] [   48] GitHub.createMetadata(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox, undefined) • Prefetching tree for ab131775c87bae6ac91a387852b0b96b26780d2b...
+2026-06-29 01:37:23.049 [info] [   55] GitHub.createFileTree(github://github/jdwjqifjwqo/Mars-wars-xbox:ab131775c87bae6ac91a387852b0b96b26780d2b)
+2026-06-29 01:37:23.049 [info] [   56] FileTree.load(ab131775c87bae6ac91a387852b0b96b26780d2b:undefined)
+2026-06-29 01:37:23.050 [info] [   57] FileTree.load(ab131775c87bae6ac91a387852b0b96b26780d2b:)
+2026-06-29 01:37:23.051 [info] [   58] FileTree.load(ab131775c87bae6ac91a387852b0b96b26780d2b:.vscode)
+2026-06-29 01:37:23.052 [info] [   55] GitHub.createFileTree(github://github/jdwjqifjwqo/Mars-wars-xbox:ab131775c87bae6ac91a387852b0b96b26780d2b) took 1 ms
+2026-06-29 01:37:23.052 [warning] [   48] GitHub.createMetadata(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox, undefined) took 971 ms • HEAD=ab131775c87bae6ac91a387852b0b96b26780d2b
+2026-06-29 01:37:23.090 [info] [   94] GitHub.getFileList(github://github/jdwjqifjwqo/Mars-wars-xbox)
+2026-06-29 01:37:23.095 [info] [   57] FileTree.load(ab131775c87bae6ac91a387852b0b96b26780d2b:): Tree=ab131775c87bae6ac91a387852b0b96b26780d2b; Tree query took 44 ms • Waiting for permissions...
+2026-06-29 01:37:23.095 [info] [   57] FileTree.load(ab131775c87bae6ac91a387852b0b96b26780d2b:) Permissions query took 0 ms • Filling trie...
+2026-06-29 01:37:23.095 [info] [   57] FileTree.load(ab131775c87bae6ac91a387852b0b96b26780d2b:) took 46 ms (Filling trie took 1 ms) • Tree=ab131775c87bae6ac91a387852b0b96b26780d2b
+2026-06-29 01:37:23.097 [warning] [    1] Time to root directory took 1092 ms
+2026-06-29 01:37:23.157 [info] [   56] FileTree.load(ab131775c87bae6ac91a387852b0b96b26780d2b:undefined): Tree=ab131775c87bae6ac91a387852b0b96b26780d2b; Tree query took 97 ms • Waiting for permissions...
+2026-06-29 01:37:23.157 [info] [   56] FileTree.load(ab131775c87bae6ac91a387852b0b96b26780d2b:undefined) Permissions query took 0 ms • Filling trie...
+2026-06-29 01:37:23.157 [info] [   56] FileTree.load(ab131775c87bae6ac91a387852b0b96b26780d2b:undefined) took 98 ms (Filling trie took 0 ms) • Tree=ab131775c87bae6ac91a387852b0b96b26780d2b
+2026-06-29 01:37:23.159 [info] [  101] FileTree.loadAllContent(ab131775c87bae6ac91a387852b0b96b26780d2b)
+2026-06-29 01:37:23.160 [info] [  102] TarPit.getTar(github/jdwjqifjwqo/Mars-wars-xbox/ab131775c87bae6ac91a387852b0b96b26780d2b)
+2026-06-29 01:37:23.160 [info] [  102] TarPit.getTar(github/jdwjqifjwqo/Mars-wars-xbox/ab131775c87bae6ac91a387852b0b96b26780d2b) • Getting .tar from memory...
+2026-06-29 01:37:23.160 [info] [  102] TarPit.getTar(github/jdwjqifjwqo/Mars-wars-xbox/ab131775c87bae6ac91a387852b0b96b26780d2b): Not found • Getting .tar from memory took 0 ms • Getting .tar from disk...
+2026-06-29 01:37:23.191 [info] [  159] getFileContents
+2026-06-29 01:37:23.215 [info] [  102] TarPit.getTar(github/jdwjqifjwqo/Mars-wars-xbox/ab131775c87bae6ac91a387852b0b96b26780d2b) took 53 ms (Getting .tar from disk took 53 ms) • Skipped download
+2026-06-29 01:37:23.215 [info] [  101] FileTree.loadAllContent(ab131775c87bae6ac91a387852b0b96b26780d2b) took 54 ms (Tar cache query took 54 ms) • No cached Tar
+2026-06-29 01:37:23.235 [info] [   94] GitHub.getFileList(github://github/jdwjqifjwqo/Mars-wars-xbox) took 120 ms
+2026-06-29 01:37:23.292 [info] [  159] getFileContentsRetrieved .devcontainer/devcontainer.json from web took 100 ms
+2026-06-29 01:37:23.341 [warning] [   53] GitHub.fetch(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox, force=true, to=undefined) took 1261 ms • Up to date
+2026-06-29 01:37:23.341 [warning] [   52] GitHub.sync(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox, resolution=0, to=undefined) took 1262 ms • to=ab131775c87bae6ac91a387852b0b96b26780d2b
+2026-06-29 01:37:23.352 [warning] [   51] GitHub.fetch(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox, force=true, to=undefined) took 1273 ms • Up to date
+2026-06-29 01:37:23.352 [warning] [   50] GitHub.sync(vscode-vfs://github/jdwjqifjwqo/Mars-wars-xbox, resolution=0, to=undefined) took 1273 ms • to=ab131775c87bae6ac91a387852b0b96b26780d2b
+2026-06-29 01:37:23.384 [error] eval
+HttpError: Not Found
+2026-06-29 01:37:23.385 [info] [   58] FileTree.load(ab131775c87bae6ac91a387852b0b96b26780d2b:.vscode) took 335 ms (Tree query took 335 ms)• Loading for path=.vscode failed; HttpError: Not Found
