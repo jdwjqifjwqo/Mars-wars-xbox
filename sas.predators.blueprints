@@ -1,0 +1,1062 @@
+<html>:
+<html lang="en">
+<head>
+  <meta charset="unicode">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Time Dilation Sensor</title>
+  <style>
+:root {
+  --bg: #050706;
+  --panel: rgba(10, 17, 14, 0.88);
+  --panel-strong: rgba(18, 29, 24, 0.94);
+  --line: rgba(126, 230, 84, 0.48);
+  --line-soft: rgba(126, 230, 84, 0.22);
+  --text: #e7f6dc;
+  --muted: #a8c99b;
+  --green: #82f04d;
+  --amber: #ffc247;
+  --red: #ff664f;
+  --blue: #5ed7ff;
+  font-family: "Roboto Mono", Consolas, monospace;
+  color: var(--text);
+  background: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(2, 5, 4, 0.86), rgba(2, 5, 4, 0.96)),
+    radial-gradient(circle at 35% 30%, rgba(126, 240, 77, 0.16), transparent 34%),
+    radial-gradient(circle at 78% 64%, rgba(94, 215, 255, 0.1), transparent 28%),
+    #030504;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border: 1px solid var(--line-soft);
+  border-left-width: 4px;
+  background: rgba(0, 0, 0, 0.44);
+  padding: 0 16px;
+}
+
+.brand {
+  min-width: 330px;
+  color: var(--green);
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.system-status {
+  flex: 1;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.system-clock {
+  width: 210px;
+  text-align: right;
+  color: var(--green);
+  font-size: 16px;
+}
+
+.monitor-grid {
+  flex: 1;
+  min-height: 0;
+  padding-top: 14px;
+  display: grid;
+  grid-template-columns: minmax(520px, 1fr) 360px;
+  grid-template-rows: minmax(420px, 1fr) 250px;
+  gap: 14px;
+}
+
+.panel {
+  min-height: 0;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel);
+  box-shadow: inset 0 0 24px rgba(126, 240, 77, 0.04);
+  padding: 12px;
+}
+
+.timeline-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.sensor-panel,
+.event-panel,
+.metrics-panel {
+  background: var(--panel-strong);
+}
+
+.panel-heading {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 800;
+  border-bottom: 1px solid var(--line-soft);
+  margin-bottom: 12px;
+}
+
+.panel-heading span:last-child {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.timeline-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border: 1px solid var(--line-soft);
+  background:
+    linear-gradient(rgba(126, 240, 77, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(126, 240, 77, 0.08) 1px, transparent 1px),
+    rgba(1, 7, 5, 0.78);
+  background-size: 38px 38px;
+  overflow: hidden;
+}
+
+#timelineCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.crossing-marker {
+  position: absolute;
+  left: 72%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--red);
+  box-shadow: 0 0 14px rgba(255, 102, 79, 0.62);
+}
+
+.crossing-marker span {
+  position: absolute;
+  bottom: 12px;
+  left: -68px;
+  width: 136px;
+  color: var(--red);
+  font-size: 12px;
+  text-align: center;
+}
+
+.timeline-readouts {
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.timeline-readouts div,
+.coordinate-box {
+  border: 1px solid var(--line-soft);
+  background: rgba(0, 0, 0, 0.28);
+  padding: 10px;
+}
+
+.label,
+.coordinate-box span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+
+strong {
+  color: var(--green);
+  font-size: 18px;
+}
+
+.control-row {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--green);
+}
+
+.button-row,
+.mode-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.equipment-stack {
+  margin-top: 18px;
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid var(--line-soft);
+  padding-top: 14px;
+}
+
+.equipment-toggle {
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.equipment-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--green);
+}
+
+button {
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: rgba(20, 45, 28, 0.82);
+  color: var(--text);
+  cursor: pointer;
+}
+
+button:hover,
+button.active {
+  background: rgba(126, 240, 77, 0.24);
+  color: var(--green);
+}
+
+.event-log {
+  height: calc(100% - 42px);
+  overflow: hidden;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: events;
+}
+
+.event-log li {
+  counter-increment: events;
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(126, 240, 77, 0.12);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.event-log li::before {
+  content: counter(events, decimal-leading-zero);
+  color: var(--green);
+}
+
+.metrics-panel {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.metrics-panel .panel-heading {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.tracking-panel {
+  background: var(--panel-strong);
+}
+
+.tracking-readouts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.tracking-readouts div {
+  border: 1px solid var(--line-soft);
+  background: rgba(0, 0, 0, 0.28);
+  padding: 10px;
+}
+
+.tracking-readouts .label {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+
+.tracking-readouts strong {
+  color: var(--green);
+  font-size: 18px;
+}
+
+meter {
+  width: 100%;
+  height: 18px;
+  accent-color: var(--green);
+}
+
+.coordinate-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.coordinate-box strong {
+  white-space: nowrap;
+}
+
+.alarm {
+  color: var(--red);
+}
+
+.warning {
+  color: var(--amber);
+}
+
+@media (max-width: 980px) {
+  body {
+    overflow: auto;
+  }
+
+  .monitor-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: 520px auto 300px auto;
+  }
+
+  .brand {
+    min-width: 0;
+    font-size: 18px;
+  }
+
+  .system-clock {
+    width: 130px;
+  }
+
+  .metrics-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand">TIME DILATION SENSOR</div>
+      <div id="systemStatus" class="system-status">TIMELINE MONITOR: STABLE</div>
+      <time id="systemClock" class="system-clock">--:--:--</time>
+    </header>
+
+    <section class="monitor-grid">
+      <section class="panel timeline-panel">
+        <div class="panel-heading">
+          <span>TIMELINE MONITOR</span>
+          <span id="timelineLabel">PARALLEL TRACK A</span>
+        </div>
+        <div class="timeline-stage">
+          <canvas id="timelineCanvas" width="960" height="520" aria-label="timeline monitor graph"></canvas>
+          <div class="crossing-marker">
+            <span>CROSSING POINT</span>
+          </div>
+        </div>
+        <div class="timeline-readouts">
+          <div>
+            <span class="label">DILATION RATE</span>
+            <strong id="rateReadout">1.37x</strong>
+          </div>
+          <div>
+            <span class="label">DELTA</span>
+            <strong id="deltaReadout">+0.0032s</strong>
+          </div>
+          <div>
+            <span class="label">LOCK</span>
+            <strong id="lockReadout">98.7%</strong>
+          </div>
+          <div>
+            <span class="label">DRIFT</span>
+            <strong id="driftReadout">LOW</strong>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel sensor-panel">
+        <div class="panel-heading">
+          <span>SENSOR CONTROLS</span>
+          <span>ACTIVE</span>
+        </div>
+
+        <label class="control-row">
+          <span>Dilation</span>
+          <input id="rateSlider" type="range" min="0.25" max="3" step="0.01" value="1.37">
+        </label>
+
+        <label class="control-row">
+          <span>Noise</span>
+          <input id="noiseSlider" type="range" min="0" max="1" step="0.01" value="0.18">
+        </label>
+
+        <label class="control-row">
+          <span>Scan Speed</span>
+          <input id="speedSlider" type="range" min="0.2" max="3" step="0.01" value="1">
+        </label>
+
+        <div class="button-row">
+          <button id="pauseButton" type="button">PAUSE</button>
+          <button id="pulseButton" type="button">PULSE</button>
+          <button id="resetButton" type="button">RESET</button>
+        </div>
+
+        <div class="mode-row" role="group" aria-label="monitor mode">
+          <button class="mode-button active" data-mode="parallel" type="button">PARALLEL</button>
+          <button class="mode-button" data-mode="breach" type="button">BREACH</button>
+          <button class="mode-button" data-mode="echo" type="button">ECHO</button>
+        </div>
+
+        <div class="equipment-stack">
+          <label class="equipment-toggle">
+            <input id="stabilizerToggle" type="checkbox" checked>
+            <span>Phase Stabilizer</span>
+          </label>
+          <label class="equipment-toggle">
+            <input id="anchorToggle" type="checkbox" checked>
+            <span>Anchor Beacon</span>
+          </label>
+          <label class="equipment-toggle">
+            <input id="predictorToggle" type="checkbox">
+            <span>Predictive Lens</span>
+          </label>
+        </div>
+      </aside>
+
+      <section class="panel event-panel">
+        <div class="panel-heading">
+          <span>EVENT STREAM</span>
+          <span id="eventCount">000</span>
+        </div>
+        <ol id="eventLog" class="event-log"></ol>
+      </section>
+
+      <section class="panel metrics-panel">
+        <div class="panel-heading">
+          <span>SENSOR METRICS</span>
+          <span>LIVE</span>
+        </div>
+        <div class="metric">
+          <span>Timeline Integrity</span>
+          <meter id="integrityMeter" min="0" max="100" value="92"></meter>
+        </div>
+        <div class="metric">
+          <span>Chronon Density</span>
+          <meter id="densityMeter" min="0" max="100" value="68"></meter>
+        </div>
+        <div class="metric">
+          <span>Signal Confidence</span>
+          <meter id="confidenceMeter" min="0" max="100" value="87"></meter>
+        </div>
+        <div class="coordinate-box">
+          <span>ANCHOR</span>
+          <strong id="anchorReadout">T+00:00:00.000</strong>
+        </div>
+        <div class="coordinate-box">
+          <span>ANOMALY</span>
+          <strong id="anomalyReadout">04%</strong>
+        </div>
+        <div class="coordinate-box">
+          <span>EQUIPPED</span>
+          <strong id="equipmentReadout">2/3</strong>
+        </div>
+      </section>
+
+      <section class="panel tracking-panel">
+        <div class="panel-heading">
+          <span>PREDATOR / SPECIAL FORCES TRACKING</span>
+          <span>NETWORK LIVE</span>
+        </div>
+        <div class="equipment-stack">
+          <label class="equipment-toggle">
+            <input id="activeCamoToggle" type="checkbox" checked>
+            <span>Active Camo — Optical Cloak</span>
+          </label>
+          <label class="equipment-toggle">
+            <input id="thermalVisionToggle" type="checkbox" checked>
+            <span>Thermal Vision — Heat Signature</span>
+          </label>
+          <label class="equipment-toggle">
+            <input id="motionTrackerToggle" type="checkbox" checked>
+            <span>Motion Tracker — Movement Analysis</span>
+          </label>
+          <label class="equipment-toggle">
+            <input id="bioMaskHudToggle" type="checkbox" checked>
+            <span>Bio-Mask HUD — Target Data Feed</span>
+          </label>
+          <label class="equipment-toggle">
+            <input id="soundAmplifierToggle" type="checkbox" checked>
+            <span>Sound Amplifier — 360° Audio Map</span>
+          </label>
+          <label class="equipment-toggle">
+            <input id="timeDilationToggle" type="checkbox" checked>
+            <span>Time Dilation Sensor — Timeline Monitor</span>
+          </label>
+        </div>
+        <div class="tracking-readouts">
+          <div>
+            <span class="label">SIGNAL</span>
+            <strong id="networkSignal">99%</strong>
+          </div>
+          <div>
+            <span class="label">LATENCY</span>
+            <strong id="networkLatency">12ms</strong>
+          </div>
+          <div>
+            <span class="label">THROUGHPUT</span>
+            <strong id="networkThroughput">1.2Gb/s</strong>
+          </div>
+          <div>
+            <span class="label">PACKETS</span>
+            <strong id="packetRate">5.3k/s</strong>
+          </div>
+          <div>
+            <span class="label">ENCRYPTION</span>
+            <strong id="encryptionStatus">AES-256</strong>
+          </div>
+          <div>
+            <span class="label">STREAM</span>
+            <strong id="networkStream">ACTIVE</strong>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+const canvas = document.getElementById("timelineCanvas");
+const ctx = canvas.getContext("2d");
+
+const systemClock = document.getElementById("systemClock");
+const systemStatus = document.getElementById("systemStatus");
+const timelineLabel = document.getElementById("timelineLabel");
+const rateReadout = document.getElementById("rateReadout");
+const deltaReadout = document.getElementById("deltaReadout");
+const lockReadout = document.getElementById("lockReadout");
+const driftReadout = document.getElementById("driftReadout");
+const eventLog = document.getElementById("eventLog");
+const eventCount = document.getElementById("eventCount");
+const integrityMeter = document.getElementById("integrityMeter");
+const densityMeter = document.getElementById("densityMeter");
+const confidenceMeter = document.getElementById("confidenceMeter");
+const anchorReadout = document.getElementById("anchorReadout");
+const anomalyReadout = document.getElementById("anomalyReadout");
+const equipmentReadout = document.getElementById("equipmentReadout");
+
+const rateSlider = document.getElementById("rateSlider");
+const noiseSlider = document.getElementById("noiseSlider");
+const speedSlider = document.getElementById("speedSlider");
+const pauseButton = document.getElementById("pauseButton");
+const pulseButton = document.getElementById("pulseButton");
+const resetButton = document.getElementById("resetButton");
+const modeButtons = Array.from(document.querySelectorAll(".mode-button"));
+const stabilizerToggle = document.getElementById("stabilizerToggle");
+const anchorToggle = document.getElementById("anchorToggle");
+const predictorToggle = document.getElementById("predictorToggle");
+const activeCamoToggle = document.getElementById("activeCamoToggle");
+const thermalVisionToggle = document.getElementById("thermalVisionToggle");
+const motionTrackerToggle = document.getElementById("motionTrackerToggle");
+const bioMaskHudToggle = document.getElementById("bioMaskHudToggle");
+const soundAmplifierToggle = document.getElementById("soundAmplifierToggle");
+const timeDilationToggle = document.getElementById("timeDilationToggle");
+
+const networkSignal = document.getElementById("networkSignal");
+const networkLatency = document.getElementById("networkLatency");
+const networkThroughput = document.getElementById("networkThroughput");
+const packetRate = document.getElementById("packetRate");
+const encryptionStatus = document.getElementById("encryptionStatus");
+const networkStream = document.getElementById("networkStream");
+
+const state = {
+  running: true,
+  mode: "parallel",
+  rate: Number(rateSlider.value),
+  noise: Number(noiseSlider.value),
+  speed: Number(speedSlider.value),
+  phase: 0,
+  delta: 0.0032,
+  lock: 98.7,
+  integrity: 92,
+  density: 68,
+  confidence: 87,
+  anomaly: 4,
+  equipmentOnline: 2,
+  networkSignal: 99,
+  networkLatency: 12,
+  networkThroughput: 1.2,
+  packetRate: 5.3,
+  encryption: "AES-256",
+  streamActive: true,
+  eventIndex: 0,
+  pulse: 0,
+  calibration: 1,
+  startTime: performance.now(),
+  lastEventAt: 0
+};
+
+const modeConfig = {
+  parallel: {
+    label: "PARALLEL TRACK A",
+    status: "TIMELINE MONITOR: STABLE",
+    color: "#82f04d",
+    secondary: "#5ed7ff"
+  },
+  breach: {
+    label: "BREACH WATCH",
+    status: "TIMELINE MONITOR: BREACH RISK",
+    color: "#ff664f",
+    secondary: "#ffc247"
+  },
+  echo: {
+    label: "ECHO TRACE",
+    status: "TIMELINE MONITOR: ECHO TRACKING",
+    color: "#5ed7ff",
+    secondary: "#82f04d"
+  }
+};
+
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const scale = window.devicePixelRatio || 1;
+  canvas.width = Math.max(1, Math.floor(rect.width * scale));
+  canvas.height = Math.max(1, Math.floor(rect.height * scale));
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+}
+
+function updateClock() {
+  const now = new Date();
+  systemClock.textContent = now.toLocaleTimeString([], {
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+}
+
+function setMode(mode) {
+  state.mode = mode;
+  const config = modeConfig[mode];
+  timelineLabel.textContent = config.label;
+  systemStatus.textContent = config.status;
+  modeButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.mode === mode);
+  });
+  addEvent(`Mode shifted to ${config.label}`);
+}
+
+function addEvent(message) {
+  state.eventIndex += 1;
+  eventCount.textContent = String(state.eventIndex).padStart(3, "0");
+
+  const item = document.createElement("li");
+  item.textContent = `${timestamp()}  ${message}`;
+  eventLog.prepend(item);
+
+  while (eventLog.children.length > 12) {
+    eventLog.lastElementChild.remove();
+  }
+}
+
+function timestamp() {
+  const elapsed = performance.now() - state.startTime;
+  const seconds = Math.floor(elapsed / 1000);
+  const millis = Math.floor(elapsed % 1000);
+  const hh = String(Math.floor(seconds / 3600)).padStart(2, "0");
+  const mm = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
+  const ss = String(seconds % 60).padStart(2, "0");
+  return `T+${hh}:${mm}:${ss}.${String(millis).padStart(3, "0")}`;
+}
+
+function updateSimulation(deltaTime) {
+  if (!state.running) {
+    return;
+  }
+
+  updateEquipmentState();
+
+  const modePressure = state.mode === "breach" ? 1.8 : state.mode === "echo" ? 1.25 : 1;
+  const stabilizerBonus = stabilizerToggle.checked ? 0.78 : 1.22;
+  const anchorBonus = anchorToggle.checked ? 0.86 : 1.18;
+  const predictorBonus = predictorToggle.checked ? 0.92 : 1;
+  state.phase += deltaTime * state.speed * modePressure * predictorBonus;
+  state.pulse = Math.max(0, state.pulse - deltaTime * 1.8);
+  state.calibration = clamp(state.calibration + deltaTime * (state.equipmentOnline / 3) * 0.018, 0.35, 1);
+
+  const wave = Math.sin(state.phase * 1.7);
+  const slowWave = Math.sin(state.phase * 0.31);
+  const random = (Math.random() - 0.5) * state.noise;
+  const equipmentNoise = stabilizerToggle.checked ? 0.58 : 1.15;
+  const anchorDrift = anchorToggle.checked ? 0.65 : 1.35;
+
+  state.delta = ((state.rate - 1) * 0.008 + wave * 0.0018 * anchorDrift + random * 0.002 * equipmentNoise + state.pulse * 0.012) * stabilizerBonus * anchorBonus;
+  state.lock = clamp(99.4 - Math.abs(state.delta) * 680 - state.noise * 8 * equipmentNoise + slowWave * 2 + state.calibration * 3, 54, 99.8);
+  state.integrity = clamp(96 - Math.abs(state.delta) * 1000 - state.noise * 15 * equipmentNoise + slowWave * 3 + state.equipmentOnline * 2, 30, 99);
+  state.density = clamp(58 + state.rate * 18 + wave * 12 + state.pulse * 24 + (predictorToggle.checked ? 8 : 0), 0, 100);
+  state.confidence = clamp((state.lock + state.integrity) * 0.5 - state.noise * 12 + state.equipmentOnline * 2.5, 0, 100);
+  state.anomaly = clamp(Math.abs(state.delta) * 3200 + state.noise * 18 + (state.mode === "breach" ? 16 : 0) - state.equipmentOnline * 4, 0, 99);
+
+  updateTrackingTelemetry(deltaTime);
+
+  const now = performance.now();
+  if (now - state.lastEventAt > 2600) {
+    state.lastEventAt = now;
+    emitSensorEvent();
+  }
+}
+
+function emitSensorEvent() {
+  if (state.anomaly > 68) {
+    addEvent("Anomaly probability entered intervention band");
+    return;
+  }
+
+  if (state.lock < 72) {
+    addEvent("Lock variance exceeded safe threshold");
+    return;
+  }
+
+  if (Math.abs(state.delta) > 0.012) {
+    addEvent("Temporal crossing point moved forward");
+    return;
+  }
+
+  if (state.mode === "echo") {
+    addEvent("Echo trace confirmed against anchor");
+    return;
+  }
+
+  if (state.mode === "breach") {
+    addEvent("Breach sensor sweep completed");
+    return;
+  }
+
+  addEvent("Parallel timeline sample stabilized");
+}
+
+function updateEquipmentState() {
+  state.equipmentOnline = Number(stabilizerToggle.checked) + Number(anchorToggle.checked) + Number(predictorToggle.checked);
+
+  if (state.equipmentOnline === 0) {
+    state.calibration = clamp(state.calibration - 0.002, 0.35, 1);
+  }
+}
+
+function drawTimeline() {
+  const rect = canvas.getBoundingClientRect();
+  const width = rect.width;
+  const height = rect.height;
+  const config = modeConfig[state.mode];
+
+  ctx.clearRect(0, 0, width, height);
+  drawGrid(width, height);
+  drawTrace(width, height, config.secondary, 0.42, 0.65);
+  drawTrace(width, height, config.color, 1, 1);
+  drawCrossing(width, height);
+}
+
+function drawGrid(width, height) {
+  ctx.save();
+  ctx.strokeStyle = "rgba(126, 240, 77, 0.12)";
+  ctx.lineWidth = 1;
+
+  for (let x = 0; x < width; x += 38) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, height);
+    ctx.stroke();
+  }
+
+  for (let y = 0; y < height; y += 38) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawTrace(width, height, color, alpha, offset) {
+  const center = height * 0.52;
+  const amplitude = height * (0.16 + state.noise * 0.1);
+  const points = 160;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.globalAlpha = alpha;
+  ctx.lineWidth = alpha > 0.8 ? 2 : 1;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = alpha > 0.8 ? 12 : 4;
+  ctx.beginPath();
+
+  for (let i = 0; i <= points; i += 1) {
+    const t = i / points;
+    const x = t * width;
+    const carrier = Math.sin(t * Math.PI * 8 + state.phase * 2.2 * offset);
+    const drift = Math.sin(t * Math.PI * 2 + state.phase * 0.7) * state.delta * 900;
+    const pulse = Math.sin(t * Math.PI * 22 - state.phase * 8) * state.pulse * 16;
+    const y = center + carrier * amplitude * offset + drift + pulse;
+
+    if (i === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  }
+
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawCrossing(width, height) {
+  const x = width * 0.72;
+
+  ctx.save();
+  ctx.strokeStyle = "rgba(255, 102, 79, 0.82)";
+  ctx.lineWidth = 1;
+  ctx.shadowColor = "rgba(255, 102, 79, 0.7)";
+  ctx.shadowBlur = 14;
+  ctx.beginPath();
+  ctx.moveTo(x, 0);
+  ctx.lineTo(x, height);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(255, 102, 79, 0.95)";
+  ctx.beginPath();
+  ctx.arc(x, height * 0.52 + state.delta * 900, 5 + state.pulse * 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function updateReadouts() {
+  rateReadout.textContent = `${state.rate.toFixed(2)}x`;
+  deltaReadout.textContent = `${state.delta >= 0 ? "+" : ""}${state.delta.toFixed(4)}s`;
+  lockReadout.textContent = `${state.lock.toFixed(1)}%`;
+  driftReadout.textContent = driftLabel();
+  driftReadout.className = Math.abs(state.delta) > 0.012 ? "alarm" : Math.abs(state.delta) > 0.007 ? "warning" : "";
+
+  integrityMeter.value = state.integrity;
+  densityMeter.value = state.density;
+  confidenceMeter.value = state.confidence;
+  anchorReadout.textContent = timestamp();
+  anomalyReadout.textContent = `${Math.round(state.anomaly).toString().padStart(2, "0")}%`;
+  anomalyReadout.className = state.anomaly > 68 ? "alarm" : state.anomaly > 42 ? "warning" : "";
+  equipmentReadout.textContent = `${state.equipmentOnline}/3`;
+  updateTrackingReadouts();
+}
+
+function updateTrackingReadouts() {
+  networkSignal.textContent = `${Math.round(state.networkSignal)}%`;
+  networkLatency.textContent = `${Math.round(state.networkLatency)}ms`;
+  networkThroughput.textContent = `${state.networkThroughput.toFixed(1)}Gb/s`;
+  packetRate.textContent = `${state.packetRate.toFixed(1)}k/s`;
+  encryptionStatus.textContent = state.encryption;
+  networkStream.textContent = state.streamActive ? "ACTIVE" : "STANDBY";
+}
+
+function driftLabel() {
+  const abs = Math.abs(state.delta);
+  if (abs > 0.012) {
+    return "CRITICAL";
+  }
+  if (abs > 0.007) {
+    return "ELEVATED";
+  }
+  return "LOW";
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function bindControls() {
+  rateSlider.addEventListener("input", () => {
+    state.rate = Number(rateSlider.value);
+  });
+
+  noiseSlider.addEventListener("input", () => {
+    state.noise = Number(noiseSlider.value);
+  });
+
+  speedSlider.addEventListener("input", () => {
+    state.speed = Number(speedSlider.value);
+  });
+
+  pauseButton.addEventListener("click", () => {
+    state.running = !state.running;
+    pauseButton.textContent = state.running ? "PAUSE" : "RESUME";
+    addEvent(state.running ? "Timeline monitor resumed" : "Timeline monitor paused");
+  });
+
+  pulseButton.addEventListener("click", () => {
+    state.pulse = 1;
+    addEvent("Manual chronon pulse injected");
+  });
+
+  resetButton.addEventListener("click", () => {
+    state.phase = 0;
+    state.delta = 0.0032;
+    state.lock = 98.7;
+    state.pulse = 0;
+    addEvent("Sensor baseline reset");
+  });
+
+  modeButtons.forEach((button) => {
+    button.addEventListener("click", () => setMode(button.dataset.mode));
+  });
+
+  [stabilizerToggle, anchorToggle, predictorToggle].forEach((toggle) => {
+    toggle.addEventListener("change", () => {
+      updateEquipmentState();
+      addEvent(`${toggle.nextElementSibling.textContent} ${toggle.checked ? "equipped" : "offline"}`);
+    });
+  });
+
+  [activeCamoToggle, thermalVisionToggle, motionTrackerToggle, bioMaskHudToggle, soundAmplifierToggle, timeDilationToggle].forEach((toggle) => {
+    toggle.addEventListener("change", () => {
+      addEvent(`${toggle.nextElementSibling.textContent} ${toggle.checked ? "online" : "offline"}`);
+      updateTrackingReadouts();
+    });
+  });
+}
+
+function updateTrackingTelemetry(deltaTime) {
+  const equipmentFactor = Number(activeCamoToggle.checked) + Number(thermalVisionToggle.checked) + Number(motionTrackerToggle.checked) + Number(bioMaskHudToggle.checked) + Number(soundAmplifierToggle.checked);
+  const streamBonus = timeDilationToggle.checked ? 1.14 : 0.88;
+
+  state.networkSignal = clamp(93 + equipmentFactor * 1.6 + (timeDilationToggle.checked ? 2 : 0) - state.noise * 3, 0, 100);
+  state.networkLatency = clamp(8 + (1 - equipmentFactor / 5) * 10 + state.noise * 6 + (state.mode === "breach" ? 2 : 0), 5, 45);
+  state.networkThroughput = clamp(0.9 + equipmentFactor * 0.18 + streamBonus * 0.18 - state.noise * 0.04, 0.6, 2.8);
+  state.packetRate = clamp(4 + equipmentFactor * 0.85 + state.networkSignal * 0.05, 3, 12);
+  state.encryption = timeDilationToggle.checked ? "AES-256" : "SHA-512";
+  state.streamActive = state.networkSignal > 74 && equipmentFactor >= 3 && timeDilationToggle.checked;
+
+  state.networkThroughput = Number(state.networkThroughput.toFixed(1));
+  state.packetRate = Number(state.packetRate.toFixed(1));
+}
+
+let lastFrame = performance.now();
+
+function frame(now) {
+  const deltaTime = Math.min(0.05, (now - lastFrame) / 1000);
+  lastFrame = now;
+
+  updateSimulation(deltaTime);
+  drawTimeline();
+  updateReadouts();
+  updateClock();
+
+  requestAnimationFrame(frame);
+}
+
+window.addEventListener("resize", resizeCanvas);
+bindControls();
+resizeCanvas();
+setMode("parallel");
+addEvent("Timeline monitor initialized");
+requestAnimationFrame(frame);
+
+  </script>
+  <div style="const isoConsole=document.getElementById("isoConsole");
+const isoCommand=document.getElementById("isoCommand");
+const isoExecute=document.getElementById("isoExecute");
+
+const ISO_STATE={
+ core:"TIME_DILATION_SENSOR",
+ mode:"LIVE",
+ files:[
+  "java.html",
+  "css.java.html",
+  "javascript.html"
+ ],
+ extensions:[
+  "HTML",
+  "CSS",
+  "JAVASCRIPT",
+  "ISO"
+ ]
+};
+
+isoExecute.onclick=function(){
+
+ let cmd=isoCommand.value.toLowerCase();
+
+ if(cmd==="ls" || cmd==="dir"){
+  isoConsole.textContent=
+`ISO FILE INDEX
+
+${ISO_STATE.files.join("\n")}
+
+EXTENSIONS
+${ISO_STATE.extensions.join("\n")}`;
+ }
+
+ else if(cmd==="status"){
+  isoConsole.textContent=
+`CORE:${ISO_STATE.core}
+MODE:${ISO_STATE.mode}
+LINKS:ACTIVE`;
+ }
+
+ else if(cmd==="iso"){
+  isoConsole.textContent=
+`ISO CONFIGURATION
+
+FRAME SYSTEM: ONLINE
+CANVAS: ONLINE
+TIMELINE: ONLINE
+HUD: ONLINE`;
+ }
+
+ else{
+  isoConsole.textContent="COMMAND ACCEPTED: "+cmd;
+ }
+<html/></html>
