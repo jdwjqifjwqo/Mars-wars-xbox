@@ -1,0 +1,568 @@
+
+ok iso frames as pause render screen on pause click paused as right side section title header left side mission objective softn resistance for the round assault  assist and extract the advanced recon team parse loop momentarly while extracting and underneath paused section controls options with on click feature when a is pressed open controller ui settings and south paw option and standard underneath controls is options for when pressed option opens brightness adjustment min to max  underneath options is restart level will restart loop frames sequence  and save and quit for end loop iso frames when clicked <c#> type rom build canvas marswars3026 single style.javascript.html 
+sas tracking sgt david richardson implement a 2d orbital tracking system and follow coordinates as active vision overlay render skeleton shader of enviroment i will provide the original configuration to build a complete timeline hop with assets :write mode computer ide type output" sas tracking sgt david richardson implement a 2d orbital tracking system and follow coordinates as active vision overlay render skeleton shader of enviroment i will provide the original configuration to build a complete timeline hop with assets
+
+
+Got it. To prep for your configuration and assets, here’s a clean scaffold you can drop into a “write-mode” IDE session. It sets up a 2D orbital tracking system, an active-vision overlay that follows supplied coordinates, and a simple environment “skeleton shader” pass. You can wire in your timeline/hop data once you share the original config.
+
+The stack below is plain TypeScript + WebGL2 (runs anywhere in a browser or headless with a GL shim). If you prefer Unity/Unreal/OpenGL desktop, say which and I’ll translate.
+
+Project layout
+
+security /.ts highlevel:Absolutely. A single-file HTML + CSS + JavaScript application is a good fit for this. Given the size of what you're asking for, though, it won't fit in one chat response.
+
+Your requested application would include roughly these components:
+
+A single standalone .html file (no external libraries).
+Modern responsive interface.
+Drag-and-drop encrypted file support.
+Paste encrypted text area.
+File picker (.txt, .bin, .dat, custom extensions).
+Custom Dynamic Language engine.
+Configurable symbol dictionary.
+Dynamic parser.
+Multi-layer decryption pipeline.
+Automatic token recognition.
+Unknown token detection.
+Human-readable output renderer.
+Large scrollable output viewer.
+Search within decoded text.
+Line numbering.
+Syntax highlighting for decoded structures.
+Export decoded text.
+Export analysis report.
+Copy output button.
+Processing timer.
+Progress bar.
+Memory usage display.
+Detailed success/error log.
+Long statistics tables including:
+File Information
+Decode Statistics
+Character Frequency
+Token Frequency
+Unicode Analysis
+Unknown Symbols
+Dictionary Matches
+Decode Confidence
+Integrity Check
+Processing Summary
+Color-coded status indicators.
+Collapsible analysis sections.
+Dark theme with modern styling.
+Pure HTML, CSS, and JavaScript in a single file.
+
+This would result in approximately 2,000–4,000 lines of code in one standalone HTML document.
+
+That is well beyond the maximum amount of code I can generate in a single response, so I can't produce the complete application in one message.
+
+A practical approach is to build it in parts while keeping it as one HTML file:
+
+Base interface and layout.
+Dynamic language engine.
+Decryption engine.
+Human-readable renderer.
+Large analysis tables.
+Export and utility features. }
+src/
+main.ts
+render.ts
+shaders.ts
+tracking.ts
+overlay.ts
+timeline.ts
+types.ts
+public/
+index.html
+package.json
+tsconfig.json
+vite.config.ts (or any dev server)
+index.html
+html
+
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>2D Orbital Tracking — Active Vision Overlay</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      html, body { margin: 0; height: 100%; background: #0a0a0a; color: #cfd8dc; font: 14px/1.4 system-ui, sans-serif; }
+      #hud { position: fixed; top: 8px; left: 8px; padding: 8px 10px; background: rgba(0,0,0,0.4); border: 1px solid #263238; }
+      canvas { display: block; width: 100vw; height: 100vh; }
+    </style>
+  </head>
+  <body>
+    <div id="hud">SAS Tracking — SGT David Richardson | Mode: ACTIVE</div>
+    <canvas id="gl"></canvas>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
+types.ts
+ts
+
+
+export type Vec2 = [number, number];
+export interface OrbitalParams {
+  center: Vec2;       // world-space center
+  a: number;          // semi-major axis
+  b: number;          // semi-minor axis
+  theta: number;      // ellipse rotation (radians)
+  omega: number;      // angular rate (rad/s)
+  phase: number;      // initial phase (rad)
+}
+export interface TrackPoint {
+  t: number;          // timeline time (s)
+  pos: Vec2;          // world-space
+}
+export interface TimelineHop {
+  id: string;
+  startT: number;
+  endT: number;
+  label?: string;
+  color?: Vec2;       // encoded as [r,g] for minimal uniform bindings
+}
+tracking.ts (2D orbital model + coordinate follower)
+ts
+
+
+import { Vec2, OrbitalParams, TrackPoint } from "./types";
+export function ellipsePoint(p: OrbitalParams, t: number): Vec2 {
+  const ang = p.phase + p.omega * t;
+  const cosA = Math.cos(ang), sinA = Math.sin(ang);
+  const xLocal = p.a * cosA;
+  const yLocal = p.b * sinA;
+  const c = Math.cos(p.theta), s = Math.sin(p.theta);
+  const x = p.center[0] + xLocal * c - yLocal * s;
+  const y = p.center[1] + xLocal * s + yLocal * c;
+  return [x, y];
+}
+export function generateTrack(p: OrbitalParams, t0: number, t1: number, dt: number): TrackPoint[] {
+  const out: TrackPoint[] = [];
+  for (let t = t0; t <= t1 + 1e-6; t += dt) {
+    out.push({ t, pos: ellipsePoint(p, t) });
+  }
+  return out;
+}
+// Follower with smoothing to match external coordinates
+export function followCoordinates(current: Vec2, target: Vec2, dt: number, gain = 10): Vec2 {
+  const k = 1 - Math.exp(-gain * dt);
+  return [current[0] + (target[0] - current[0]) * k, current[1] + (target[1] - current[1]) * k];
+}
+shaders.ts (skeleton render + overlay lines)
+ts
+
+
+export const vsBasic = `#version 300 es
+layout(location=0) in vec2 a_pos;
+uniform vec2 u_scale;   // world->NDC scale
+uniform vec2 u_offset;  // world->NDC offset
+void main(){
+  vec2 p = a_pos * u_scale + u_offset; // world to NDC
+  gl_Position = vec4(p, 0.0, 1.0);
+}
+`;
+export const fsSkeleton = `#version 300 es
+precision highp float;
+uniform vec3 u_color;     // base skeleton color
+out vec4 o;
+void main(){
+  // simple line/shape color
+  o = vec4(u_color, 1.0);
+}
+`;
+export const fsOverlay = `#version 300 es
+precision highp float;
+uniform vec3 u_color;
+out vec4 o;
+void main(){
+  // brighter overlay for tracked paths/reticles
+  o = vec4(u_color, 1.0);
+}
+`;
+render.ts (WebGL2 renderer)
+ts
+
+
+import { vsBasic, fsSkeleton, fsOverlay } from "./shaders";
+import { Vec2 } from "./types";
+type Program = { prog: WebGLProgram; u: Record<string, WebGLUniformLocation> };
+export class Renderer {
+  gl: WebGL2RenderingContext;
+  progSkeleton: Program;
+  progOverlay: Program;
+  vao: WebGLVertexArrayObject | null = null;
+  vbo: WebGLBuffer | null = null;
+  cap = 0;
+  scale: Vec2 = [2/1920, -2/1080];   // world to NDC scale
+  offset: Vec2 = [-1, 1];            // top-left origin world coords
+  constructor(canvas: HTMLCanvasElement) {
+    const gl = canvas.getContext("webgl2", { antialias: true, alpha: false });
+    if (!gl) throw new Error("WebGL2 not supported");
+    this.gl = gl;
+    this.progSkeleton = this.makeProgram(vsBasic, fsSkeleton, ["u_scale","u_offset","u_color"]);
+    this.progOverlay  = this.makeProgram(vsBasic, fsOverlay,  ["u_scale","u_offset","u_color"]);
+    this.vao = gl.createVertexArray();
+    this.vbo = gl.createBuffer();
+    gl.bindVertexArray(this.vao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0);
+    gl.bindVertexArray(null);
+  }
+  resize(w: number, h: number) {
+    const gl = this.gl;
+    gl.canvas.width = w;
+    gl.canvas.height = h;
+    gl.viewport(0, 0, w, h);
+    // keep world units in pixels, map to NDC
+    this.scale = [2/w, -2/h];
+    this.offset = [-1, 1];
+  }
+  private makeShader(src: string, type: number) {
+    const gl = this.gl;
+    const sh = gl.createShader(type)!;
+    gl.shaderSource(sh, src);
+    gl.compileShader(sh);
+    if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+      throw new Error(gl.getShaderInfoLog(sh) || "shader compile error");
+    }
+    return sh;
+  }
+  private makeProgram(vs: string, fs: string, uniforms: string[]): Program {
+    const gl = this.gl;
+    const p = gl.createProgram()!;
+    gl.attachShader(p, this.makeShader(vs, gl.VERTEX_SHADER));
+    gl.attachShader(p, this.makeShader(fs, gl.FRAGMENT_SHADER));
+    gl.bindAttribLocation(p, 0, "a_pos");
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+      throw new Error(gl.getProgramInfoLog(p) || "program link error");
+    }
+    const u: Record<string, WebGLUniformLocation> = {};
+    uniforms.forEach(name => { const loc = gl.getUniformLocation(p, name); if (loc) u[name] = loc; });
+    return { prog: p, u };
+  }
+  private ensureCapacity(f32: Float32Array) {
+    const gl = this.gl;
+    if (f32.length <= this.cap) return;
+    this.cap = f32.length;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
+    gl.bufferData(gl.ARRAY_BUFFER, f32, gl.DYNAMIC_DRAW);
+  }
+  drawLines(points: Float32Array, color: [number,number,number], overlay = false) {
+    const gl = this.gl;
+    const P = overlay ? this.progOverlay : this.progSkeleton;
+    this.ensureCapacity(points);
+    gl.bindVertexArray(this.vao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, points);
+    gl.useProgram(P.prog);
+    gl.uniform2f(P.u["u_scale"], this.scale[0], this.scale[1]);
+    gl.uniform2f(P.u["u_offset"], this.offset[0], this.offset[1]);
+    gl.uniform3f(P.u["u_color"], color[0], color[1], color[2]);
+    gl.drawArrays(gl.LINE_STRIP, 0, points.length / 2);
+    gl.bindVertexArray(null);
+  }
+  clear() {
+    const gl = this.gl;
+    gl.clearColor(0.03, 0.03, 0.05, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+  }
+}
+overlay.ts (active vision: reticle, crosshair, labels)
+ts
+
+
+import { Renderer } from "./render";
+import { Vec2 } from "./types";
+export function drawReticle(r: Renderer, p: Vec2, size = 12) {
+  const [x, y] = p;
+  const pts = new Float32Array([
+    x - size, y, x - 3, y,
+    x + 3, y, x + size, y,
+    x, y - size, x, y - 3,
+    x, y + 3, x, y + size
+  ]);
+  r.drawLines(pts, [0.9, 0.9, 0.2], true);
+}
+export function drawOrbit(r: Renderer, path: Vec2[], color = [0.2, 0.7, 1.0] as [number,number,number]) {
+  const flat = new Float32Array(path.length * 2);
+  for (let i = 0; i < path.length; i++) {
+    flat[i*2] = path[i][0];
+    flat[i*2+1] = path[i][1];
+  }
+  r.drawLines(flat, color, true);
+}
+timeline.ts (timeline hop integration points)
+ts
+
+
+import { TimelineHop, TrackPoint } from "./types";
+export class TimelineController {
+  private hops: TimelineHop[] = [];
+  private t0 = 0;
+  private now = 0;
+  private speed = 1.0;
+  setHops(hops: TimelineHop[]) { this.hops = hops; }
+  setStart(t: number) { this.t0 = t; this.now = t; }
+  setSpeed(s: number) { this.speed = s; }
+  tick(dt: number) { this.now += dt * this.speed; }
+  // Filter track points within active hops (simple demo)
+  activeWindow(points: TrackPoint[]): TrackPoint[] {
+    if (this.hops.length === 0) return points;
+    const t = this.now;
+    const h = this.hops.find(h => t >= h.startT && t <= h.endT);
+    if (!h) return [];
+    return points.filter(p => p.t >= h.startT && p.t <= h.endT);
+  }
+  time() { return this.now; }
+}
+main.ts (wires everything together)
+ts
+
+
+import { Renderer } from "./render";
+import { ellipsePoint, generateTrack, followCoordinates } from "./tracking";
+import { drawOrbit, drawReticle } from "./overlay";
+import { OrbitalParams, Vec2 } from "./types";
+import { TimelineController } from "./timeline";
+const canvas = document.getElementById("gl") as HTMLCanvasElement;
+const r = new Renderer(canvas);
+const tl = new TimelineController();
+function resize() { r.resize(window.innerWidth, window.innerHeight); }
+window.addEventListener("resize", resize);
+resize();
+// Example orbital params — replace with your configuration when provided
+const orbit: OrbitalParams = {
+  center: [960, 540],
+  a: 380,
+  b: 220,
+  theta: Math.PI * 0.15,
+  omega: Math.PI / 6,  // 30 deg/s
+  phase: 0
+};
+// Precompute an orbit path for overlay
+const path = generateTrack(orbit, 0, 12, 0.02).map(p => p.pos);
+// Coordinate follower state
+let follower: Vec2 = path[0];
+// Timeline hops demo — will be replaced by your assets
+tl.setHops([
+  { id: "seg-A", startT: 0, endT: 4 },
+  { id: "seg-B", startT: 4, endT: 8 },
+  { id: "seg-C", startT: 8, endT: 12 }
+]);
+tl.setStart(0);
+tl.setSpeed(1);
+let last = performance.now() / 1000;
+function frame() {
+  const now = performance.now() / 1000;
+  const dt = Math.min(0.05, Math.max(0, now - last));
+  last = now;
+  tl.tick(dt);
+  r.clear();
+  // Environment skeleton: simple cross grid for spatial reference
+  drawGrid();
+  // Active orbit path
+  drawOrbit(r, path);
+  // Current target along orbit (as "tracking coordinates")
+  const target = ellipsePoint(orbit, tl.time());
+  follower = followCoordinates(follower, target, dt, 8);
+  drawReticle(r, follower, 14);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+function drawGrid() {
+  const step = 120;
+  const pts: number[] = [];
+  for (let x = 0; x <= window.innerWidth; x += step) {
+    pts.push(x, 0, x, window.innerHeight);
+  }
+  for (let y = 0; y <= window.innerHeight; y += step) {
+    pts.push(0, y, window.innerWidth, y);
+  }
+  const arr = new Float32Array(pts);
+  r.drawLines(arr, [0.18, 0.28, 0.35], false);
+}
+package.json (vite + ts)
+json
+
+
+{
+  "name": "orbital-tracking-2d",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vite": "^5.2.0"
+  }
+}
+tsconfig.json
+binary
+
+
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "react-jsx",
+    "types": []
+  }
+}
+vite.config.ts
+ts
+
+
+import { defineConfig } from "vite";
+export default defineConfig({
+  server: { port: 5173, open: true }
+});
+How to plug in your configuration and assets
+
+build c# type configuration with javascript grid sequence frame iso png jpg 50 frames from buid 44:
+Action: file_editor view /app/frontend/src/pages/MarsWars.jsx
+Observation: [Showing lines 485-500 of 520 total] /app/frontend/src/pages/MarsWars.jsx:
+485|function formatTime(t) {
+486|  const hh = 14;
+487|  const mm = 37;
+488|  const ss = Math.floor(22 + t) % 60;
+489|  return `${pad(hh)}:${pad(mm)}:${pad(ss)}`;
+490|}
+491|function pad(n) { return String(n).padStart(2, "0"); }
+492|,230,160,0.55)",
+493|          fontFamily: "Share Tech Mono, monospace",
+494|          letterSpacing: "0.1em",
+495|        }
+496|      }} />
+497|    </div>
+498|  );
+499|}
+500|
+ [16 lines shown. Remaining: lines 501-520 (20 lines). Use view_range parameter to continue.]
+Action: Checking syntantical correctness for /app/frontend/src/pages/MarsWars.jsx
+Observation: /app/frontend/src/pages/MarsWars.jsx:492:1: Parsing error: Unexpected token , [Error]
+Action: file_editor str_replace /app/frontend/src/pages/MarsWars.jsx --old-str "        <div className=\"ttl\" style={{ marginTop: 8 }}>SOL</div>
+        <div style={{ color: \"#e8ffd8\", fontSize: 14, letterSpacing: \"0.14em\" }}>
+          1847321.{Math.floor((time / 12) * 9)}
+        </div>
+      </div>" --new-str "        <div className=\"ttl\" style={{ marginTop: 8 }}>DIMENSION HOP</div>
+        <div className=\"row\"><span className=\"k\">CURRENT</span><span className=\"v\">1</span></div>
+        <div className=\"row\"><span className=\"k\">TARGET</span><span className=\"v\">2</span></div>
+        <div className=\"row\"><span className=\"k\">STATUS</span><span className=\"v\"><span className=\"pill\">READY</span></span></div>
+        <button
+          data-testid=\"hop-btn\"
+          onClick={() => toast(\"DIMENSION HOP 1 → 2 INITIATED\")}
+          style={{
+            marginTop: 8, width: \"100%\", padding: \"6px 10px\",
+            background: \"rgba(120,240,140,0.18)\", border: \"1px solid #c4f5a4\",
+            color: \"#e8ffd8\", letterSpacing: \"0.2em\", cursor: \"pointer\",
+            fontFamily: \"Orbitron, monospace\", fontWeight: 700,
+          }}>HOP</button>
+      </div>
+
+      {/* CREW ROSTER (AETHERIS / AVIS-1) */}
+      <div className=\"hud-panel hud-corners\" style={{ top: 280, right: 274, width: 200 }}
+           data-testid=\"hud-crew\">
+        <div className=\"c1\" /><div className=\"c2\" />
+        <div className=\"ttl\">CREW ROSTER · AVIS-1</div>
+        {CREW.map((c) => (
+          <div key={c} style={{ fontSize: 11, color: \"#c4f5a4\", letterSpacing: \"0.08em\", lineHeight: 1.6 }}>
+            ● {c}
+          </div>
+        ))}
+        <div style={{ marginTop: 8, fontSize: 10, color: \"#a8e69a\" }}>
+          ARRIVAL: {SECTOR.geo} · ALT {SECTOR.altKm}KM
+        </div>
+      </div>"
+Observation: Edit was successful.
+Action: file_editor str_replace /app/frontend/src/pages/MarsWars.jsx --old-str "        <div className=\"ttl\">RESOURCES</div>
+        <div className=\"row\"><span className=\"k\">WATER</span><span className=\"v\">{COLONY.resources.water}</span></div>
+        <div className=\"row\"><span className=\"k\">METALS</span><span className=\"v\">{COLONY.resources.metals}</span></div>
+        <div className=\"row\"><span className=\"k\">ENERGY</span><span className=\"v\">{COLONY.resources.energy}</span></div>
+        <div className=\"row\"><span className=\"k\">FOOD</span><span className=\"v\">{COLONY.resources.food}</span></div>
+        <div className=\"row\"><span className=\"k\">OXYGEN</span><span className=\"v\">{COLONY.resources.oxygen}</span></div>" --new-str "        <div className=\"ttl\">PLAYER · PARSE/POSSESS</div>
+        <div className=\"row\"><span className=\"k\">NAME</span><span className=\"v\" style={{ fontSize: 10 }}>{PLAYER_INIT.name}</span></div>
+        <div className=\"row\"><span className=\"k\">HP</span><span className=\"v\">{PLAYER_INIT.hp}</span></div>
+        <div className=\"row\"><span className=\"k\">DIMENSION</span><span className=\"v\">{PLAYER_INIT.dimension}</span></div>
+        <div className=\"row\"><span className=\"k\">STATE</span><span className=\"v\"><span className=\"pill\">{PLAYER_INIT.state}</span></span></div>
+        <div className=\"row\"><span className=\"k\">AMMO</span><span className=\"v\">{PLAYER_INIT.ammo}/{PLAYER_INIT.ammoMax}</span></div>
+        <div className=\"row\"><span className=\"k\">POSSESS</span><span className=\"v\"><span className={`pill ${PLAYER_INIT.possess ? \"warn\" : \"\"}`}>{PLAYER_INIT.possess ? \"ON\" : \"OFF\"}</span></span></div>
+        <div style={{ borderTop: \"1px dashed rgba(140,220,140,0.3)\", margin: \"8px 0 6px\" }} />
+        <div className=\"row\"><span className=\"k\">ENEMY-01</span><span className=\"v\"><span className=\"pill bad\">{ENEMY.distM} M</span></span></div>
+        <div className=\"row\"><span className=\"k\">CREW</span><span className=\"v\">6/6</span></div>"
+Observation: Edit was successful./
+Action: file_editor str_replace /app/frontend/src/pages/MarsWars.jsx --old-str "        <div className=\"ttl\" style={{ marginTop: 8 }}>SOL</div>
+        <div style={{ color: \"#e8ffd8\", fontSize: 14, letterSpacing: \"0.14em\" }}>
+          1847321.{Math.floor((time / 12) * 9)}
+        </div>
+      </div>" --new-str "        <div className=\"ttl\" style={{ marginTop: 8 }}>DIMENSION HOP</div>
+        <div className=\"row\"><span className=\"k\">CURRENT</span><span className=\"v\">1</span></div>
+        <div className=\"row\"><span className=\"k\">TARGET</span><span className=\"v\">2</span></div>
+        <div className=\"row\"><span className=\"k\">STATUS</span><span className=\"v\"><span className=\"pill\">READY</span></span></div>
+        <button
+          data-testid=\"hop-btn\"
+          onClick={() => toast(\"DIMENSION HOP 1 → 2 INITIATED\")}
+          style={{
+            marginTop: 8, width: \"100%\", padding: \"6px 10px\",
+            background: \"rgba(120,240,140,0.18)\", border: \"1px solid #c4f5a4\",
+            color: \"#e8ffd8\", letterSpacing: \"0.2em\", cursor: \"pointer\",
+            fontFamily: \"Orbitron, monospace\", fontWeight: 700,
+          }}>HOP</button>
+      </div>
+
+      {/* CREW ROSTER (AETHERIS / AVIS-1) */}
+      <div className=\"hud-panel hud-corners\" style={{ top: 280, right: 274, width: 200 }}
+           data-testid=\"hud-crew\">
+        <div className=\"c1\" /><div className=\"c2\" />
+        <div className=\"ttl\">CREW ROSTER · AVIS-1</div>
+        {CREW.map((c) => (
+          <div key={c} style={{ fontSize: 11, color: \"#c4f5a4\", letterSpacing: \"0.08em\", lineHeight: 1.6 }}>
+            ● {c}
+          </div>
+        ))}
+        <div style={{ marginTop: 8, fontSize: 10, color: \"#a8e69a\" }}>
+          ARRIVAL: {SECTOR.geo} · ALT {SECTOR.altKm}KM
+        </div>
+      </div>"
+Observation: Edit was successful.
+Action: file_editor str_replace /app/frontend/src/pages/MarsWars.jsx --old-str "        <div className=\"ttl\">RESOURCES</div>
+        <div className=\"row\"><span className=\"k\">WATER</span><span className=\"v\">{COLONY.resources.water}</span></div>
+        <div className=\"row\"><span className=\"k\">METALS</span><span className=\"v\">{COLONY.resources.metals}</span></div>
+        <div className=\"row\"><span className=\"k\">ENERGY</span><span className=\"v\">{COLONY.resources.energy}</span></div>
+        <div className=\"row\"><span className=\"k\">FOOD</span><span className=\"v\">{COLONY.resources.food}</span></div>
+        <div className=\"row\"><span className=\"k\">OXYGEN</span><span className=\"v\">{COLONY.resources.oxygen}</span></div>" --new-str "        <div className=\"ttl\">PLAYER · PARSE/POSSESS</div>
+        <div className=\"row\"><span className=\"k\">NAME</span><span className=\"v\" style={{ fontSize: 10 }}>{PLAYER_INIT.name}</span></div>
+        <div className=\"row\"><span className=\"k\">HP</span><span className=\"v\">{PLAYER_INIT.hp}</span></div>
+        <div className=\"row\"><span className=\"k\">DIMENSION</span><span className=\"v\">{PLAYER_INIT.dimension}</span></div>
+        <div className=\"row\"><span className=\"k\">STATE</span><span className=\"v\"><span className=\"pill\">{PLAYER_INIT.state}</span></span></div>
+        <div className=\"row\"><span className=\"k\">AMMO</span><span className=\"v\">{PLAYER_INIT.ammo}/{PLAYER_INIT.ammoMax}</span></div>
+        <div className=\"row\"><span className=\"k\">POSSESS</span><span className=\"v\"><span className={`pill ${PLAYER_INIT.possess ? \"warn\" : \"\"}`}>{PLAYER_INIT.possess ? \"ON\" : \"OFF\"}</span></span></div>
+        <div style={{ borderTop: \"1px dashed rgba(140,220,140,0.3)\", margin: \"8px 0 6px\" }} />
+        <div className=\"row\"><span className=\"k\">ENEMY-01</span><span className=\"v\"><span className=\"pill bad\">{ENEMY.distM} M</span></span></div>
+        <div className=\"row\"><span className=\"k\">CREW</span><span className=\"v\">6/6</span></div>"
+Observation: Edit was successful.
+Action: file_editor str_replace /app/frontend/src/pages/MarsWars.jsx --old-str "        <div className=\"ttl\">ENVIRONMENT</div>
+        <div className=\"row\"><span className=\"k\">TEMP</span><span className=\"v\">{COLONY.temp}°C</span></div>
+        <div className=\"row\"><span className=\"k\">PRESS</span><span className=\"v\">{COLONY.press} kPa</span></div>
+        <div className=\"row\"><span className=\"k\">RADS</span><span className=\"v\">{COLONY.rads} mSv</span></div>
+        <div className=\"row\"><span className=\"k\">WIND</span><span className=\"v\">{COLONY.wind} m/s</span></div>" --new-str "        <div className=\"ttl\">EMULATION STATUS</div>
+        <div className=\"row\"><span className=\"k\">ISO</span><span className=\"v\" style={{ fontSize: 10 }}>{ROM.iso}</span></div>
+        <div className=\"row\"><span className=\"k\">EMU</span><span className=\"v\" style={{ fontSize: 10 }}>{ROM.emu}</span></div>
+        <div className=\"row\"><span className=\"k\">FPS</span><span className=\"v\">{ROM.fps}</span></div>
+        <div className=\"row\"><span className=\"k\">RES</span><span className=\"v\">{ROM.res}</span></div>
+        <div className=\"row\"><span className=\"k\">STATUS</span><span className=\"v\"><span className=\"pill\">{ROM.status}</span></span></div>
+        <div style={{ borderTop: \"1px dashed rgba(140,220,140,0.3)\", margin: \"8px 0 6px\" }} />
+        <div className=\"row\"><span className=\"k\">TEMP</span><span className=\"v\">{ENV.temp}°C</span></div>
+        <div className=\"row\"><span className=\"k\">PRESS</span><span className=\"v\">{ENV.press} kPa</span></div>
+        <div className=\"row\"><span className=\"k\">RADS</span><span className=\"v\">{ENV.rads} mSv</span></div>
+        <div className=\"row\"><span className=\"k\">ATMOS</span><span className=\"v\" style={{ fontSize: 10 }}>{SECTOR.atmos}</span></div>"
